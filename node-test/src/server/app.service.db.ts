@@ -1,37 +1,26 @@
-import * as fs from 'fs';
-import { join } from 'path';
 import { Injectable } from '@nestjs/common';
+import { gitroot, dataspath } from './config';
+import { read, write } from './util';
 
-const dataspath = join(__dirname, '../', `gitdatas`);
-const read = () => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(dataspath, 'utf8', (err, filelist) => {
-      resolve(JSON.parse(filelist || '[]'));
-    });
-  });
-};
-const write = data => {
-  return new Promise((resolve, reject) => {
-    fs.writeFile(dataspath, JSON.stringify(data), () => {
-      resolve();
-    });
-  });
-};
 @Injectable()
 export class DbService {
   async getall(): Promise<any> {
-    const list = await read();
-    return list;
+    return await read(dataspath);
   }
   async create(data) {
-    const list = await read();
-    //@ts-ignore
+    const list = await read(dataspath);
+    // @ts-ignore
     list.push(data);
-    await write(list);
+    await write(dataspath, list);
   }
   async delete(id: string) {
-    const list = await read();
-    //@ts-ignore
-    await write(list.filter(d => d.id !== id));
+    const list = await read(dataspath);
+    // @ts-ignore
+    await write(dataspath, list.filter(d => d.id !== id));
+  }
+  async getDataById(id) {
+    const list = await read(dataspath);
+    // @ts-ignore
+    return list.find(d => d.id === id);
   }
 }
