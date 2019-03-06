@@ -49,10 +49,13 @@
     <el-table :data="list">
       <el-table-column width="100px" label="id" prop="id"></el-table-column>
       <el-table-column width="100px" label="服务名称" prop="name"></el-table-column>
-      <el-table-column label="git-remote" prop="remote"></el-table-column>
-      <el-table-column label="url" prop="remote">
+      <el-table-column label="urls">
         <div slot-scope="scope">
-          <a target="_blank" :href="scope.row.url">{{scope.row.url}}</a>
+          <p>git-remote：{{scope.row.remote}}</p>
+          <p>
+            url：
+            <a target="_blank" :href="scope.row.url">{{scope.row.url}}</a>
+          </p>
         </div>
       </el-table-column>
       <el-table-column width="100px" label="状态" prop="pm2text"></el-table-column>
@@ -207,7 +210,7 @@ export default {
         url: 'alllist',
       }).then(ajaxData => {
         this.list = ajaxData.data.data.list.map(data => {
-          data.pm2text = data.pm2status ? '正在运行' : '停止运行';
+          data.pm2text = data.pm2status ? '正在运行' : '已停止';
           if (data.flag) {
             data.url = `http://localhost:${data.config.port}${data.config.assetsPublicPath}`;
           } else {

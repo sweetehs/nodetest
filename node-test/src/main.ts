@@ -7,7 +7,7 @@ async function bootstrap() {
 
   app.useStaticAssets(join(__dirname, './front/dist'));
   app.setBaseViewsDir(join(__dirname, 'front/dist'));
-  app.setViewEngine('hbs');
+  // app.setViewEngine('hbs');
 
   await app.listen(3000);
 }
