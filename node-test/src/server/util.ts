@@ -1,4 +1,6 @@
 import * as fs from 'fs';
+import * as shelljs from 'shelljs';
+import { gitroot, dataspath } from './config';
 export const read = path => {
   return new Promise((resolve, reject) => {
     fs.readFile(path, 'utf8', (err, filelist) => {
@@ -12,4 +14,27 @@ export const write = (path, data) => {
       resolve();
     });
   });
+};
+export const isExists = path => {
+  return new Promise((r, j) => {
+    fs.exists(path, value => {
+      r(value);
+    });
+  });
+};
+// 获取项目路径
+export const getRoot = data => {
+  const { dirname, id } = data;
+  return `${gitroot}/${dirname}_${id}`;
+};
+// 命令执行
+export const exec = command => {
+  return new Promise((resolve, reject) =>
+    shelljs.exec(command, {}, (code, value, error) => {
+      if (error) {
+        return reject(error);
+      }
+      resolve(value);
+    }),
+  );
 };

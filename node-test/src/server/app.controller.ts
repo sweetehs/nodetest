@@ -2,12 +2,14 @@ import * as fs from 'fs';
 import { Controller, Get, Post, Render, Body, Query } from '@nestjs/common';
 import { DbService } from './app.service.db';
 import { FileService } from './app.service.file';
+import { Pm2Service } from './app.service.pm2';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly dbService: DbService,
     private readonly fileService: FileService,
+    private readonly pm2Service: Pm2Service,
   ) {}
 
   @Get()
@@ -30,8 +32,9 @@ export class AppController {
     );
     data.id = Math.floor(Math.random() * 100000).toString();
     data.dirname = data.remote.match(/\/(.*?).git/)[1];
-    // 读写数据文件
+    // 拉取
     await this.fileService.gitpull(data);
+    // 读写数据文件
     await this.dbService.create(data);
     return { type: 'success' };
   }
@@ -39,6 +42,20 @@ export class AppController {
   @Get('/alllist')
   async getAll() {
     const list = await this.dbService.getall();
+    const configs = await Promise.all(
+      list.map(data => this.fileService.readconfig(data)),
+    );
+    const pm2s = await Promise.all(
+      list.map(data => this.pm2Service.getStatus(data)),
+    );
+    const flags = await Promise.all(
+      list.map(data => this.fileService.isaccord(data)),
+    );
+    list.forEach((data, i) => {
+      data.config = configs[i];
+      data.pm2status = pm2s[i];
+      data.flag = flags[i];
+    });
     return {
       type: 'success',
       data: {
@@ -50,6 +67,8 @@ export class AppController {
   async deleteItem(@Body() body) {
     // 删除数据
     await this.dbService.delete(body.id);
+    // 停止pm2
+    await this.pm2Service.delete(body);
     // 删除文件
     await this.fileService.filedelete(body);
     return {
@@ -57,15 +76,25 @@ export class AppController {
     };
   }
 
-  @Get('/branches')
-  async getBranches(@Query() query) {
+  @Get('/devconfig')
+  async getDevConfig(@Query() query) {
     const data = await this.dbService.getDataById(query.id);
-    const branchInfo = await this.fileService.gitbranch(data);
     const config = await this.fileService.readconfig(data);
     return {
       type: 'success',
       data: {
         config,
+      },
+    };
+  }
+
+  @Get('/branch')
+  async getBranches(@Query() query) {
+    const data = await this.dbService.getDataById(query.id);
+    const branchInfo = await this.fileService.gitbranch(data);
+    return {
+      type: 'success',
+      data: {
         branchInfo,
       },
     };
@@ -74,14 +103,36 @@ export class AppController {
   @Post('/update')
   async updateData(@Body() body) {
     // 写到数据里
-    // proxy 修改
-    body.proxy = body.proxy.reduce((r, d) => {
-      r[d.rule] = {};
-      r[d.rule].target = d.url;
-      r[d.rule].changeOrigin = true;
-      return r;
-    }, {});
-    await this.fileService.updateConfig(body);
+    const data = await this.dbService.update(body);
+    // 写文件
+    await this.fileService.updateConfig(data);
+    return {
+      type: 'success',
+    };
+  }
+
+  @Post('/pm2start')
+  async pm2Start(@Body() body) {
+    const data = await this.dbService.getDataById(body.id);
+    await this.pm2Service.start(data);
+    return {
+      type: 'success',
+    };
+  }
+
+  @Post('/pm2stop')
+  async pm2Stop(@Body() body) {
+    const data = await this.dbService.getDataById(body.id);
+    await this.pm2Service.stop(data);
+    return {
+      type: 'success',
+    };
+  }
+
+  @Post('/checkoutbranch')
+  async checkoutbranch(@Body() body) {
+    const data = await this.dbService.getDataById(body.id);
+    await this.fileService.checkout(body.branch, data);
     return {
       type: 'success',
     };

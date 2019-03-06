@@ -1,29 +1,20 @@
 import * as git from 'simple-git';
 import * as shelljs from 'shelljs';
 import { gitroot, dataspath } from './config';
-import { read, write } from './util';
-function exec(command) {
-  return new Promise((resolve, reject) =>
-    shelljs.exec(command, {}, (code, value, error) => {
-      if (error) {
-        return reject(error);
-      }
-      resolve(value);
-    }),
-  );
-}
+import { read, write, exec, getRoot, isExists } from './util';
+
 export class FileService {
   async gitpull(data) {
-    const { remote, dirname, id } = data;
-    await git(gitroot).clone(remote);
-    await exec(`mv ${gitroot}/${dirname} ${gitroot}/${dirname}_${id}`);
-    shelljs.cd(`${gitroot}/${dirname}_${id}`);
+    const root = getRoot(data);
+    shelljs.mkdir(root);
+    await git(root).clone(data.remote);
+    shelljs.cd(`${root}/${data.dirname}`);
     await exec('npm install');
   }
   async gitbranch(data) {
     return await new Promise((resolve, reject) => {
-      git(`${gitroot}/${data.dirname}_${data.id}`)
-        .fetch(['--prune'])
+      git(`${gitroot}/${data.dirname}_${data.id}/${data.dirname}`)
+        // .fetch(['--prune'])
         .branch(['-a'], (err, branches) => {
           if (err) {
             reject(err);
@@ -39,23 +30,26 @@ export class FileService {
     shelljs.rm('-rf', fielpath);
   }
   async readconfig(data) {
-    const fielpath = `${gitroot}/${data.dirname}_${data.id}/nodetest.json`;
+    const root = getRoot(data);
+    const fielpath = `${root}/${data.dirname}/nodetest.json`;
     return read(fielpath);
   }
   async updateConfig(data) {
-    const fielpath = `${gitroot}/${data.dirname}_${data.id}/nodetest.json`;
-    // 修改config文件
-    // 切换分支
-    await git(`${gitroot}/${data.dirname}_${data.id}`)
-      // .reset(['--hard'])
-      .checkout('-f', data.currentBranch);
-    // .reset(['--hard']);
-    // 写文件
-    await write(fielpath, {
-      port: data.port,
-      proxy: data.proxy,
+    const path = `${getRoot(data)}/${data.dirname}/nodetest.json`;
+    await write(path, {
+      ...data.config,
     });
-    // 启动服务
-    await exec(`pm2 start npm --name=${data.dirname}_${data.id} -- run dev`);
+  }
+  async isaccord(data) {
+    const path = `${getRoot(data)}/${data.dirname}/nodetest.json`;
+    return isExists(path);
+  }
+  async checkout(branch, data) {
+    const gitpath = `${getRoot(data)}/${data.dirname}`;
+    // 切换分支之前要保存修改的proxy内容
+    git(gitpath)
+      .reset('--hard')
+      .stash()
+      .checkout(`${branch}`);
   }
 }
