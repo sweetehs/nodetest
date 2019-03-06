@@ -23,6 +23,7 @@
     "@nestjs/common": "^5.4.0",
     "@nestjs/core": "^5.4.0",
     "fs": "0.0.1-security",
+    "hbs": "^4.0.3",
     "reflect-metadata": "^0.1.12",
     "rimraf": "^2.6.2",
     "rxjs": "^6.2.2",

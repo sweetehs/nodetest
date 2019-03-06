@@ -12,3 +12,4 @@ git
 *.ntvs*
 *.njsproj
 *.sln
+dist
