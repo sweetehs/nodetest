@@ -185,9 +185,6 @@ export default {
             id: data.id,
           },
         }).then(ajaxData => {
-          // const { all, current } = ajaxData.data.data.branchInfo;
-          // this.currentBranches = all;
-          // this.currentData.currentBranch = current;
           const { config } = ajaxData.data.data;
           this.currentData.port = config.port;
           this.currentData.assetsPublicPath = config.assetsPublicPath;
@@ -211,7 +208,11 @@ export default {
       }).then(ajaxData => {
         this.list = ajaxData.data.data.list.map(data => {
           data.pm2text = data.pm2status ? '正在运行' : '停止运行';
-          data.url = `http://localhost:${data.config.port}${data.config.assetsPublicPath}`;
+          if (data.flag) {
+            data.url = `http://localhost:${data.config.port}${data.config.assetsPublicPath}`;
+          } else {
+            data.url = '项目不符合要求';
+          }
           return data;
         });
       });
