@@ -7,9 +7,12 @@ export class FileService {
   async gitpull(data) {
     const root = getRoot(data);
     shelljs.mkdir(root);
-    await git(root).clone(data.remote);
-    shelljs.cd(`${root}/${data.dirname}`);
-    await exec('npm install');
+    await new Promise((r, j) => {
+      git(root).clone(data.remote, [], () => {
+        r();
+      });
+    });
+    await exec(`cd ${root}/${data.dirname} && npm install`);
   }
   async gitbranch(data) {
     return await new Promise((resolve, reject) => {
@@ -26,7 +29,6 @@ export class FileService {
   }
   async filedelete(data) {
     const fielpath = `${gitroot}/${data.dirname}_${data.id}`;
-    shelljs.cd(fielpath);
     shelljs.rm('-rf', fielpath);
   }
   async readconfig(data) {
@@ -47,9 +49,13 @@ export class FileService {
   async checkout(branch, data) {
     const gitpath = `${getRoot(data)}/${data.dirname}`;
     // 切换分支之前要保存修改的proxy内容
-    git(gitpath)
-      .reset('--hard')
-      .stash()
-      .checkout(`${branch}`);
+    return new Promise((r, j) => {
+      git(gitpath)
+        .reset('--hard')
+        .stash()
+        .checkout(`${branch}`, () => {
+          r();
+        });
+    });
   }
 }

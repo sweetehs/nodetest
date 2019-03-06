@@ -13,3 +13,4 @@ git
 *.njsproj
 *.sln
 dist
+gitdatas*
