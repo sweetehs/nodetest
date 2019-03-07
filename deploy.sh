@@ -4,11 +4,12 @@ SERVER="$ROOT/node-test"
 
 cd $SERVER
 npm install
+mkdir $SERVER/src/view/project
 
 cd $FRONT
 npm run build
-mv -f $FRONT/dist $SERVER/src
+mv -f $FRONT/dist $SERVER/src/view
 
-cd $SERVER
-pm2 start npm --name=node-test -- run start
+# cd $SERVER
+# pm2 start npm --name=node-test -- run start
 

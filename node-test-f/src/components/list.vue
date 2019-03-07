@@ -185,7 +185,7 @@ export default {
         this.currentData = data;
         // 获取分支
         axios({
-          url: '/devconfig',
+          url: '/node_self/devconfig',
           params: {
             id: data.id,
           },
@@ -209,7 +209,7 @@ export default {
     },
     ajaxGetList() {
       axios({
-        url: '/alllist',
+        url: '/node_self/alllist',
       }).then(ajaxData => {
         this.list = ajaxData.data.data.list.map(data => {
           data.pm2text = data.pm2status ? '正在运行' : '已停止';
@@ -226,7 +226,7 @@ export default {
       if (!this.isUpdate) {
         this.loading = true;
         axios({
-          url: '/pull',
+          url: '/node_self/pull',
           method: 'post',
           data: this.currentData,
         })
@@ -251,7 +251,7 @@ export default {
         };
         // debugger;
         axios({
-          url: '/update',
+          url: '/node_self/update',
           method: 'post',
           data: {
             id,
@@ -267,7 +267,7 @@ export default {
     deleteItem(data) {
       data.loading = true;
       axios({
-        url: '/delete',
+        url: '/node_self/delete',
         method: 'post',
         data: {
           id: data.id,
@@ -293,9 +293,9 @@ export default {
     pm2Handle(data) {
       let url = '';
       if (data.pm2status) {
-        url = '/pm2stop';
+        url = '/node_self/pm2stop';
       } else {
-        url = '/pm2start';
+        url = '/node_self/pm2start';
       }
       axios({
         url: url,
@@ -316,7 +316,7 @@ export default {
       };
       this.dialogBranch = true;
       axios({
-        url: '/branch',
+        url: '/node_self/branch',
         params: {
           id: data.id,
         },
@@ -328,7 +328,7 @@ export default {
     },
     sureCheckBranch() {
       axios({
-        url: '/checkoutbranch',
+        url: '/node_self/checkoutbranch',
         method: 'post',
         data: {
           id: this.currentData.id,

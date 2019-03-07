@@ -4,7 +4,7 @@ import { DbService } from './app.service.db';
 import { FileService } from './app.service.file';
 import { Pm2Service } from './app.service.pm2';
 
-@Controller()
+@Controller('node_self')
 export class AppController {
   constructor(
     private readonly dbService: DbService,
@@ -34,6 +34,10 @@ export class AppController {
     data.dirname = data.remote.match(/\/(.*?).git/)[1];
     // 拉取
     await this.fileService.gitpull(data);
+    // 修改打包路径
+    const config: any = await this.fileService.readconfig(data);
+    config.buildAssetsPublicPath = `/project/${data.dirname}_${data.id}/`;
+    data.config = config;
     // 读写数据文件
     await this.dbService.create(data);
     return { type: 'success' };
@@ -114,7 +118,8 @@ export class AppController {
   @Post('/pm2start')
   async pm2Start(@Body() body) {
     const data = await this.dbService.getDataById(body.id);
-    await this.pm2Service.start(data);
+    await this.fileService.createProjet(data);
+    await this.fileService.updateConfig(data);
     return {
       type: 'success',
     };

@@ -5,8 +5,8 @@ import { AppModule } from './server/app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useStaticAssets(join(__dirname, './dist'));
-  app.setBaseViewsDir(join(__dirname, './dist'));
+  app.useStaticAssets(join(__dirname, './view'));
+  app.setBaseViewsDir(join(__dirname, './view'));
   app.setViewEngine('hbs');
 
   await app.listen(3000);

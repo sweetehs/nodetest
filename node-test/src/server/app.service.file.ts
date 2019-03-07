@@ -1,6 +1,6 @@
 import * as git from 'simple-git';
 import * as shelljs from 'shelljs';
-import { gitroot, dataspath } from './config';
+import { gitroot, projectroot, dataspath } from './config';
 import { read, write, exec, getRoot, isExists } from './util';
 
 export class FileService {
@@ -57,5 +57,20 @@ export class FileService {
           r();
         });
     });
+  }
+  async createProjet(data) {
+    const gitpath = `${getRoot(data)}/${data.dirname}`;
+    // 如果有 则需要先删除目标目录
+    await exec(`rm -rf ${projectroot}/${data.dirname}_${data.id}`);
+    // 生成目标文件夹
+    await exec(`cd ${projectroot} && mkdir ${data.dirname}_${data.id}`);
+    // 打包项目文件
+    await exec(`cd ${gitpath} && npm run build`);
+    // 移动到项目录
+    await exec(
+      `cd ${gitpath}/dist && cp -rf * ${projectroot}/${data.dirname}_${
+        data.id
+      }`,
+    );
   }
 }
