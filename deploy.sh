@@ -1,3 +1,5 @@
+pm2 delete node-test
+
 ROOT=`pwd`
 FRONT="$ROOT/node-test-f"
 SERVER="$ROOT/node-test"
