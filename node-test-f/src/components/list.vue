@@ -61,35 +61,37 @@
       <el-table-column width="100px" label="状态" prop="pm2text"></el-table-column>
       <el-table-column width="400px" label="操作">
         <div slot-scope="scope">
-          <el-switch
-            v-if="scope.row.flag"
-            class="fn-mr10"
-            active-color="#13ce66"
-            inactive-color="#F56C6C"
-            :value="!scope.row.pm2status"
-            @change="pm2Handle(scope.row)"
-          ></el-switch>
-          <el-button
-            :disabled="scope.row.pm2status"
-            size="mini"
-            type="primary"
-            @click="showBranchDialog(scope.row)"
-          >切换分支</el-button>
-          <el-button
-            v-if="scope.row.flag"
-            :disabled="scope.row.pm2status"
-            type="primary"
-            size="mini"
-            @click="shaHandleDialog('update', scope.row)"
-          >修改</el-button>
-          <el-button
-            v-if="scope.row.flag"
-            type="danger"
-            size="mini"
-            :disabled="scope.row.pm2status"
-            @click="deleteItem(scope.row)"
-          >删除</el-button>
-          <span v-if="!scope.row.flag" class="fn-ml10">该分支不符合项目请点击右上角查看规则</span>
+          <div v-loading="scope.row.loading">
+            <el-switch
+              v-if="scope.row.flag"
+              class="fn-mr10"
+              active-color="#13ce66"
+              inactive-color="#F56C6C"
+              :value="!scope.row.pm2status"
+              @change="pm2Handle(scope.row)"
+            ></el-switch>
+            <el-button
+              :disabled="scope.row.pm2status"
+              size="mini"
+              type="primary"
+              @click="showBranchDialog(scope.row)"
+            >切换分支</el-button>
+            <el-button
+              v-if="scope.row.flag"
+              :disabled="scope.row.pm2status"
+              type="primary"
+              size="mini"
+              @click="shaHandleDialog('update', scope.row)"
+            >修改</el-button>
+            <el-button
+              v-if="scope.row.flag"
+              type="danger"
+              size="mini"
+              :disabled="scope.row.pm2status"
+              @click="deleteItem(scope.row)"
+            >删除</el-button>
+            <span v-if="!scope.row.flag" class="fn-ml10">该分支不符合项目请点击右上角查看规则</span>
+          </div>
         </div>
       </el-table-column>
     </el-table>
@@ -207,7 +209,7 @@ export default {
     },
     ajaxGetList() {
       axios({
-        url: 'alllist',
+        url: '/alllist',
       }).then(ajaxData => {
         this.list = ajaxData.data.data.list.map(data => {
           data.pm2text = data.pm2status ? '正在运行' : '已停止';
@@ -263,6 +265,7 @@ export default {
       }
     },
     deleteItem(data) {
+      data.loading = true;
       axios({
         url: '/delete',
         method: 'post',
@@ -270,9 +273,13 @@ export default {
           id: data.id,
           dirname: data.dirname,
         },
-      }).then(ajaxData => {
-        this.ajaxGetList();
-      });
+      })
+        .then(ajaxData => {
+          this.ajaxGetList();
+        })
+        .finally(() => {
+          data.loading = false;
+        });
     },
     addRule() {
       this.currentData.proxy.push({
