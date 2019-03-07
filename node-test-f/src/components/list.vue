@@ -228,7 +228,7 @@ export default {
         axios({
           url: '/checklength',
         }).then(ajaxData => {
-          if (ajaxData.type === 'success') {
+          if (ajaxData.data.type === 'success') {
             this.loading = true;
             axios({
               url: '/pull',

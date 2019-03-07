@@ -29,7 +29,7 @@ export class AppController {
     }
     if (flag) {
       return {
-        type: 'sueccess',
+        type: 'success',
       };
     } else {
       return {
@@ -53,7 +53,7 @@ export class AppController {
     });
     if (flag) {
       return {
-        type: 'sueccess',
+        type: 'success',
       };
     } else {
       return {
