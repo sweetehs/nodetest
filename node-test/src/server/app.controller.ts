@@ -18,6 +18,51 @@ export class AppController {
     return { message: 'Hello world!' };
   }
 
+  @Get('/checklength')
+  async checkLength() {
+    const list = await this.dbService.getall();
+    let flag = true;
+    let error = '';
+    if (list.length >= 10) {
+      flag = false;
+      error = '最多只能建立10个服务';
+    }
+    if (flag) {
+      return {
+        type: 'sueccess',
+      };
+    } else {
+      return {
+        type: 'error',
+        msg: error,
+      };
+    }
+  }
+
+  @Get('/checkport')
+  async checkPort(@Query() query) {
+    const list = await this.dbService.getall();
+    let flag = true;
+    let error = '';
+    console.log(list);
+    list.forEach(data => {
+      if (data.config.port === query.port) {
+        flag = false;
+        error = `存在端口${query.port}的服务，请更换接口`;
+      }
+    });
+    if (flag) {
+      return {
+        type: 'sueccess',
+      };
+    } else {
+      return {
+        type: 'error',
+        msg: error,
+      };
+    }
+  }
+
   @Post('/pull')
   async pullGit(@Body() createGit) {
     // 文件夹名称
@@ -34,6 +79,8 @@ export class AppController {
     data.dirname = data.remote.match(/\/(.*?).git/)[1];
     // 拉取
     await this.fileService.gitpull(data);
+    const config = await this.fileService.readconfig(data);
+    data.config = config;
     // 读写数据文件
     await this.dbService.create(data);
     return { type: 'success' };

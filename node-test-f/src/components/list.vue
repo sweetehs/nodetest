@@ -214,7 +214,7 @@ export default {
         this.list = ajaxData.data.data.list.map(data => {
           data.pm2text = data.pm2status ? '正在运行' : '已停止';
           if (data.flag) {
-            data.url = `http://localhost:${data.config.port}${data.config.assetsPublicPath}`;
+            data.url = `http://10.8.121.94:${data.config.port}${data.config.devAssetsPublicPath}`;
           } else {
             data.url = '项目不符合要求';
           }
@@ -224,43 +224,64 @@ export default {
     },
     handleUpdate() {
       if (!this.isUpdate) {
-        this.loading = true;
+        // 校验
         axios({
-          url: '/pull',
-          method: 'post',
-          data: this.currentData,
-        })
-          .then(() => {
-            this.dialogHandle = false;
-            this.ajaxGetList();
-          })
-          .finally(() => {
-            this.loading = false;
-          });
+          url: '/checklength',
+        }).then(ajaxData => {
+          if (ajaxData.type === 'success') {
+            this.loading = true;
+            axios({
+              url: '/pull',
+              method: 'post',
+              data: this.currentData,
+            })
+              .then(() => {
+                this.dialogHandle = false;
+                this.ajaxGetList();
+              })
+              .finally(() => {
+                this.loading = false;
+              });
+          } else {
+            this.$message.error(ajaxData.data.msg);
+          }
+        });
       } else {
-        const { name, proxy, port, id } = this.currentData;
-        const config = {
-          assetsPublicPath: this.currentData.assetsPublicPath,
-          port,
-          proxy: proxy.reduce((r, d) => {
-            r[d.rule] = {};
-            r[d.rule].target = d.url;
-            r[d.rule].changeOrigin = true;
-            return r;
-          }, {}),
-        };
-        // debugger;
+        // check port
         axios({
-          url: '/update',
-          method: 'post',
-          data: {
-            id,
-            name,
-            config,
+          url: '/checkport',
+          params: {
+            port: this.currentData.port,
           },
-        }).then(() => {
-          this.dialogHandle = false;
-          this.ajaxGetList();
+        }).then(ajaxData => {
+          if (ajaxData.type === 'success') {
+            const { name, proxy, port, id } = this.currentData;
+            const config = {
+              assetsPublicPath: this.currentData.assetsPublicPath,
+              port,
+              proxy: proxy.reduce((r, d) => {
+                r[d.rule] = {};
+                r[d.rule].target = d.url;
+                r[d.rule].changeOrigin = true;
+                return r;
+              }, {}),
+            };
+            // debugger;
+            axios({
+              url: '/update',
+              method: 'post',
+              data: {
+                id,
+                name,
+                config,
+              },
+            }).then(() => {
+              this.dialogHandle = false;
+              this.ajaxGetList();
+            });
+          } else {
+            this.$message.error(ajaxData.data.msg);
+          }
         });
       }
     },
