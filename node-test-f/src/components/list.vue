@@ -1,4 +1,10 @@
 <style lang="less">
+.list-wrapper {
+  > div {
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+}
 .action {
   display: flex;
   justify-content: space-between;
@@ -42,6 +48,8 @@
 
 <template>
   <div class="list-wrapper">
+    <div>运营经销商：git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git</div>
+    <div>卖车通：git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git</div>
     <div class="action">
       <el-button type="primary" @click="shaHandleDialog('create')">添加git</el-button>
       <a href="javascript:;" @click="dialogRule = true">查看规则</a>
@@ -101,7 +109,7 @@
           <el-input v-model="currentData.name"></el-input>
         </el-form-item>
         <el-form-item label="git-remote">
-          <el-input :disabled="true" v-model="currentData.remote"></el-input>
+          <el-input :disabled="isUpdate" v-model="currentData.remote"></el-input>
         </el-form-item>
         <el-form-item label="端口" v-if="isUpdate">
           <el-input v-model="currentData.port"></el-input>
@@ -165,7 +173,7 @@ export default {
         assetsPublicPath: '',
         port: '',
         proxy: {},
-        remote: 'git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git',
+        remote: '',
       },
     };
   },
