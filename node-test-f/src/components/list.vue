@@ -1,9 +1,5 @@
 <style lang="less">
 .list-wrapper {
-  > div {
-    margin-bottom: 10px;
-    font-size: 16px;
-  }
 }
 .action {
   display: flex;
@@ -47,9 +43,7 @@
 </style>
 
 <template>
-  <div class="list-wrapper">
-    <div>运营经销商：git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git</div>
-    <div>卖车通：git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git</div>
+  <div class="list-wrapper" v-loading="loading">
     <div class="action">
       <el-button type="primary" @click="shaHandleDialog('create')">添加git</el-button>
       <a href="javascript:;" @click="dialogRule = true">查看规则</a>
@@ -69,37 +63,35 @@
       <el-table-column width="100px" label="状态" prop="pm2text"></el-table-column>
       <el-table-column width="400px" label="操作">
         <div slot-scope="scope">
-          <div v-loading="scope.row.loading">
-            <el-switch
-              v-if="scope.row.flag"
-              class="fn-mr10"
-              active-color="#13ce66"
-              inactive-color="#F56C6C"
-              :value="!scope.row.pm2status"
-              @change="pm2Handle(scope.row)"
-            ></el-switch>
-            <el-button
-              :disabled="scope.row.pm2status"
-              size="mini"
-              type="primary"
-              @click="showBranchDialog(scope.row)"
-            >切换分支</el-button>
-            <el-button
-              v-if="scope.row.flag"
-              :disabled="scope.row.pm2status"
-              type="primary"
-              size="mini"
-              @click="shaHandleDialog('update', scope.row)"
-            >修改</el-button>
-            <el-button
-              v-if="scope.row.flag"
-              type="danger"
-              size="mini"
-              :disabled="scope.row.pm2status"
-              @click="deleteItem(scope.row)"
-            >删除</el-button>
-            <span v-if="!scope.row.flag" class="fn-ml10">该分支不符合项目请点击右上角查看规则</span>
-          </div>
+          <el-switch
+            v-if="scope.row.flag"
+            class="fn-mr10"
+            active-color="#13ce66"
+            inactive-color="#F56C6C"
+            :value="!scope.row.pm2status"
+            @change="pm2Handle(scope.row)"
+          ></el-switch>
+          <el-button
+            :disabled="scope.row.pm2status"
+            size="mini"
+            type="primary"
+            @click="showBranchDialog(scope.row)"
+          >切换分支</el-button>
+          <el-button
+            v-if="scope.row.flag"
+            :disabled="scope.row.pm2status"
+            type="primary"
+            size="mini"
+            @click="shaHandleDialog('update', scope.row)"
+          >修改</el-button>
+          <el-button
+            v-if="scope.row.flag"
+            type="danger"
+            size="mini"
+            :disabled="scope.row.pm2status"
+            @click="deleteItem(scope.row)"
+          >删除</el-button>
+          <span v-if="!scope.row.flag" class="fn-ml10">该分支不符合项目请点击右上角查看规则</span>
         </div>
       </el-table-column>
     </el-table>
@@ -109,7 +101,13 @@
           <el-input v-model="currentData.name"></el-input>
         </el-form-item>
         <el-form-item label="git-remote">
-          <el-input :disabled="isUpdate" v-model="currentData.remote"></el-input>
+          <el-select :disabled="isUpdate" v-model="currentData.remote">
+            <el-option
+              value="git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git"
+              label="运营管理系统"
+            ></el-option>
+            <el-option value="git@code.byted.org:motor-fe/dealer.git" label="卖车通"></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="端口" v-if="isUpdate">
           <el-input v-model="currentData.port"></el-input>
@@ -232,6 +230,9 @@ export default {
     },
     handleUpdate() {
       if (!this.isUpdate) {
+        if (!this.currentData.remote) {
+          return;
+        }
         // 校验
         axios({
           url: '/checklength',
@@ -259,10 +260,11 @@ export default {
         axios({
           url: '/checkport',
           params: {
+            id: this.currentData.id,
             port: this.currentData.port,
           },
         }).then(ajaxData => {
-          if (ajaxData.type === 'success') {
+          if (ajaxData.data.type === 'success') {
             const { name, proxy, port, id } = this.currentData;
             const config = {
               assetsPublicPath: this.currentData.assetsPublicPath,
@@ -294,7 +296,7 @@ export default {
       }
     },
     deleteItem(data) {
-      data.loading = true;
+      this.loading = true;
       axios({
         url: '/delete',
         method: 'post',
@@ -303,11 +305,11 @@ export default {
           dirname: data.dirname,
         },
       })
-        .then(ajaxData => {
+        .then(() => {
           this.ajaxGetList();
         })
         .finally(() => {
-          data.loading = false;
+          this.loading = false;
         });
     },
     addRule() {

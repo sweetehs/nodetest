@@ -44,9 +44,9 @@ export class AppController {
     const list = await this.dbService.getall();
     let flag = true;
     let error = '';
-    console.log(list);
+    console.log(query.id);
     list.forEach(data => {
-      if (data.config.port === query.port) {
+      if (data.config.port === query.port && data.id !== query.id) {
         flag = false;
         error = `存在端口${query.port}的服务，请更换接口`;
       }
