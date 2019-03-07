@@ -4,6 +4,7 @@ SERVER="$ROOT/node-test"
 
 cd $SERVER
 npm install
+rm -rf $SERVER/src/dist
 
 cd $FRONT
 npm run build
