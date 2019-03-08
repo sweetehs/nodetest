@@ -3,20 +3,25 @@ import * as shelljs from 'shelljs';
 import { gitroot, projectroot, dataspath } from './config';
 import { read, write, exec, getRoot, isExists } from './util';
 
+const getProPath = data => {
+  return `${gitroot}/${data.dirname}`;
+};
 export class FileService {
   async gitpull(data) {
-    const root = getRoot(data);
-    shelljs.mkdir(root);
+    // const root = getRoot(data);st
+    // const gitpath = `${gitroot}/${data.dirname}`;
+    // shelljs.mkdir(gitpath);
     await new Promise((r, j) => {
-      git(root).clone(data.remote, [], () => {
+      git(gitroot).clone(data.remote, [], () => {
         r();
       });
     });
-    await exec(`cd ${root}/${data.dirname} && npm install`);
+    // await exec(`cd ${root}/${data.dirname} && npm install`);
   }
   async gitbranch(data) {
     return await new Promise((resolve, reject) => {
-      git(`${gitroot}/${data.dirname}_${data.id}/${data.dirname}`)
+      const root = getProPath(data);
+      git(`${root}`)
         // .fetch(['--prune'])
         .branch(['-a'], (err, branches) => {
           if (err) {
@@ -32,22 +37,22 @@ export class FileService {
     shelljs.rm('-rf', fielpath);
   }
   async readconfig(data) {
-    const root = getRoot(data);
-    const fielpath = `${root}/${data.dirname}/nodetest.json`;
+    // const root = getRoot(data);
+    const root = getProPath(data);
+    const fielpath = `${root}/nodetest.json`;
     return read(fielpath);
   }
   async updateConfig(data) {
-    const path = `${getRoot(data)}/${data.dirname}/nodetest.json`;
-    await write(path, {
-      ...data.config,
-    });
+    const root = getProPath(data);
+    const fielpath = `${root}/nodetest.json`;
+    await write(fielpath, data.config);
   }
   async isaccord(data) {
-    const path = `${getRoot(data)}/${data.dirname}/nodetest.json`;
-    return isExists(path);
+    const root = getProPath(data);
+    return isExists(`${root}/nodetest.json`);
   }
   async checkout(branch, data) {
-    const gitpath = `${getRoot(data)}/${data.dirname}`;
+    const gitpath = getProPath(data);
     // 切换分支之前要保存修改的proxy内容
     return new Promise((r, j) => {
       git(gitpath)
@@ -59,18 +64,17 @@ export class FileService {
     });
   }
   async createProjet(data) {
-    const gitpath = `${getRoot(data)}/${data.dirname}`;
+    const gitpath = getProPath(data);
+    const propath = `${projectroot}/${data.dirname}_${data.id}`;
     // 如果有 则需要先删除目标目录
-    await exec(`rm -rf ${projectroot}/${data.dirname}_${data.id}`);
+    await exec(`rm -rf ${propath}`);
     // 生成目标文件夹
-    await exec(`cd ${projectroot} && mkdir ${data.dirname}_${data.id}`);
+    await exec(`mkdir ${propath}`);
+    // 修改打包config
+    await this.updateConfig(data);
     // 打包项目文件
-    await exec(`cd ${gitpath} && npm run build`);
+    await exec(`cd ${gitpath} && npm install && npm run build`);
     // 移动到项目录
-    await exec(
-      `cd ${gitpath}/dist && cp -rf * ${projectroot}/${data.dirname}_${
-        data.id
-      }`,
-    );
+    await exec(`cd ${gitpath}/dist && cp -rf * ${propath}`);
   }
 }

@@ -27,6 +27,7 @@ export class AppController {
         dirname: '',
         name: '',
         remote: '',
+        branch: {},
       },
       createGit,
     );
@@ -46,17 +47,18 @@ export class AppController {
   @Get('/alllist')
   async getAll() {
     const list = await this.dbService.getall();
-    const configs = await Promise.all(
-      list.map(data => this.fileService.readconfig(data)),
-    );
     const pm2s = await Promise.all(
       list.map(data => this.pm2Service.getStatus(data)),
     );
     const flags = await Promise.all(
       list.map(data => this.fileService.isaccord(data)),
     );
+    const branchs = await Promise.all(
+      list.map(data => this.fileService.gitbranch(data)),
+    );
     list.forEach((data, i) => {
-      data.config = configs[i];
+      // @ts-ignore
+      data.branch.potcurrent = branchs[i].current;
       data.pm2status = pm2s[i];
       data.flag = flags[i];
     });
@@ -80,18 +82,6 @@ export class AppController {
     };
   }
 
-  @Get('/devconfig')
-  async getDevConfig(@Query() query) {
-    const data = await this.dbService.getDataById(query.id);
-    const config = await this.fileService.readconfig(data);
-    return {
-      type: 'success',
-      data: {
-        config,
-      },
-    };
-  }
-
   @Get('/branch')
   async getBranches(@Query() query) {
     const data = await this.dbService.getDataById(query.id);
@@ -108,36 +98,32 @@ export class AppController {
   async updateData(@Body() body) {
     // 写到数据里
     const data = await this.dbService.update(body);
-    // 写文件
-    await this.fileService.updateConfig(data);
     return {
       type: 'success',
     };
   }
 
-  @Post('/pm2start')
+  @Post('/publish')
   async pm2Start(@Body() body) {
     const data = await this.dbService.getDataById(body.id);
+    // // 创建项目
     await this.fileService.createProjet(data);
-    await this.fileService.updateConfig(data);
+    // 发布项目分支修改
+    data.branch.pubcurrent = data.branch.potcurrent;
+    await this.dbService.update(data);
     return {
       type: 'success',
     };
   }
 
-  @Post('/pm2stop')
-  async pm2Stop(@Body() body) {
-    const data = await this.dbService.getDataById(body.id);
-    await this.pm2Service.stop(data);
-    return {
-      type: 'success',
-    };
-  }
-
-  @Post('/checkoutbranch')
+  @Post('/checkoutpub')
   async checkoutbranch(@Body() body) {
     const data = await this.dbService.getDataById(body.id);
+    // 切换git分支
     await this.fileService.checkout(body.branch, data);
+    // 修改数据中的仓库分支
+    data.branch.potcurrent = body.branch;
+    await this.dbService.update(data);
     return {
       type: 'success',
     };

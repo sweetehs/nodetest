@@ -58,27 +58,25 @@
           </p>
         </div>
       </el-table-column>
-      <el-table-column width="100px" label="状态" prop="pm2text"></el-table-column>
-      <el-table-column width="400px" label="操作">
+      <!-- <el-table-column width="100px" label="状态" prop="pm2text"></el-table-column> -->
+      <el-table-column width="300px" label="分支">
+        <div slot-scope="scope">
+          <p>当前仓库分支：{{scope.row.branch.potcurrent}}</p>
+          <p>当前发布分支：{{scope.row.branch.pubcurrent}}</p>
+        </div>
+      </el-table-column>
+      <el-table-column width="300px" label="操作">
         <div slot-scope="scope">
           <div v-loading="scope.row.loading">
-            <el-switch
-              v-if="scope.row.flag"
-              class="fn-mr10"
-              active-color="#13ce66"
-              inactive-color="#F56C6C"
-              :value="!scope.row.pm2status"
-              @change="pm2Handle(scope.row)"
-            ></el-switch>
             <el-button
-              :disabled="scope.row.pm2status"
+              v-if="scope.row.flag"
               size="mini"
               type="primary"
-              @click="showBranchDialog(scope.row)"
-            >切换分支</el-button>
+              @click="publish(scope.row)"
+            >发布</el-button>
+            <el-button size="mini" type="primary" @click="showBranchDialog(scope.row)">切换分支</el-button>
             <el-button
               v-if="scope.row.flag"
-              :disabled="scope.row.pm2status"
               type="primary"
               size="mini"
               @click="shaHandleDialog('update', scope.row)"
@@ -87,7 +85,6 @@
               v-if="scope.row.flag"
               type="danger"
               size="mini"
-              :disabled="scope.row.pm2status"
               @click="deleteItem(scope.row)"
             >删除</el-button>
             <span v-if="!scope.row.flag" class="fn-ml10">该分支不符合项目请点击右上角查看规则</span>
@@ -133,7 +130,7 @@
         </div>
       </el-radio-group>
       <div class="action fn-center">
-        <el-button type="primary" size="small" @click="sureCheckBranch">切换</el-button>
+        <el-button type="primary" size="small" @click="sureCheckBranch">切换并发布</el-button>
       </div>
     </el-dialog>
     <el-dialog class="dialog-rule" title="规则" :visible.sync="dialogRule">
@@ -162,7 +159,7 @@ export default {
       currentData: {
         name: '测试',
         currentBranch: '',
-        assetsPublicPath: '',
+        // assetsPublicPath: '',
         port: '',
         proxy: {},
         remote: 'git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git',
@@ -184,27 +181,20 @@ export default {
       if (type === 'update') {
         this.currentData = data;
         // 获取分支
-        axios({
-          url: '/node_self/devconfig',
-          params: {
-            id: data.id,
-          },
-        }).then(ajaxData => {
-          const { config } = ajaxData.data.data;
-          this.currentData.port = config.port;
-          this.currentData.assetsPublicPath = config.assetsPublicPath;
-          // 处理proxy
-          this.currentData.proxy = [];
-          for (var i in config.proxy) {
-            const _data = config.proxy[i];
-            if (_data) {
-              this.currentData.proxy.push({
-                rule: i,
-                url: _data.target,
-              });
-            }
+        const { config } = data;
+        this.currentData.port = config.port;
+        // this.currentData.assetsPublicPath = config.assetsPublicPath;
+        // 处理proxy
+        this.currentData.proxy = [];
+        for (var i in config.proxy) {
+          const _data = config.proxy[i];
+          if (_data) {
+            this.currentData.proxy.push({
+              rule: i,
+              url: _data.target,
+            });
           }
-        });
+        }
       }
     },
     ajaxGetList() {
@@ -214,7 +204,7 @@ export default {
         this.list = ajaxData.data.data.list.map(data => {
           data.pm2text = data.pm2status ? '正在运行' : '已停止';
           if (data.flag) {
-            data.url = `http://localhost:${data.config.port}${data.config.assetsPublicPath}`;
+            data.url = `${data.config.buildAssetsPublicPath}index.html`;
           } else {
             data.url = '项目不符合要求';
           }
@@ -239,8 +229,7 @@ export default {
           });
       } else {
         const { name, proxy, port, id } = this.currentData;
-        const config = {
-          assetsPublicPath: this.currentData.assetsPublicPath,
+        const config = Object.assign(this.currentData.config, {
           port,
           proxy: proxy.reduce((r, d) => {
             r[d.rule] = {};
@@ -248,8 +237,7 @@ export default {
             r[d.rule].changeOrigin = true;
             return r;
           }, {}),
-        };
-        // debugger;
+        });
         axios({
           url: '/node_self/update',
           method: 'post',
@@ -290,23 +278,22 @@ export default {
     deleteRule(index) {
       this.currentData.proxy.splice(index, 1);
     },
-    pm2Handle(data) {
-      let url = '';
-      if (data.pm2status) {
-        url = '/node_self/pm2stop';
-      } else {
-        url = '/node_self/pm2start';
-      }
+    publish(data) {
+      this.loading = true;
       axios({
-        url: url,
+        url: '/node_self/publish',
         method: 'post',
         data: {
           id: data.id,
         },
-      }).then(() => {
-        this.$message.success('操作成功');
-        this.ajaxGetList();
-      });
+      })
+        .then(() => {
+          this.$message.success('操作成功');
+          this.ajaxGetList();
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     showBranchDialog(data) {
       this.currentData = data;
@@ -328,7 +315,7 @@ export default {
     },
     sureCheckBranch() {
       axios({
-        url: '/node_self/checkoutbranch',
+        url: '/node_self/checkoutpub',
         method: 'post',
         data: {
           id: this.currentData.id,

@@ -35,8 +35,11 @@ export class ProxyController {
           qs: query,
         },
         (err, res, bd) => {
-          console.error(bd);
-          reslove(JSON.parse(bd ? bd : '{}'));
+          if (!err) {
+            reslove(JSON.parse(bd ? bd : '{}'));
+          } else {
+            reslove(err);
+          }
         },
       );
     });
@@ -57,8 +60,11 @@ export class ProxyController {
           form: body,
         },
         (err, res, bd) => {
-          console.error(bd);
-          reslove(JSON.parse(bd ? bd : '{}'));
+          if (!err) {
+            reslove(JSON.parse(bd ? bd : '{}'));
+          } else {
+            reslove(err);
+          }
         },
       );
     });
