@@ -35,6 +35,9 @@ export class AppController {
     data.dirname = data.remote.match(/\/(.*?).git/)[1];
     // 拉取
     await this.fileService.gitpull(data);
+    // 写入当前仓库分支
+    const branchInfo: any = await this.fileService.gitbranch(data);
+    data.branch.potcurrent = branchInfo.current;
     // 修改打包路径
     const config: any = await this.fileService.readconfig(data);
     config.buildAssetsPublicPath = `/project/${data.dirname}_${data.id}/`;

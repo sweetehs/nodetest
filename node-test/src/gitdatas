@@ -1,1 +1,1 @@
-[]
+[{"id":"95964","dirname":"bussiness_operate","name":"测试","remote":"git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git","branch":{"potcurrent":"master","pubcurrent":"master"},"currentBranch":"","port":"","proxy":{},"config":{"port":"8083","devAssetsPublicPath":"/motor/dealer/","buildAssetsPublicPath":"/project/bussiness_operate_95964/","proxy":{"*":{"target":"http://10.8.123.225:9989","changeOrigin":true}}}}]

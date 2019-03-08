@@ -8,7 +8,7 @@ const getProPath = data => {
 };
 export class FileService {
   async gitpull(data) {
-    if (isExists(getProPath(data))) {
+    if (await isExists(getProPath(data))) {
       await this.checkout('master', data);
     } else {
       await new Promise((r, j) => {
