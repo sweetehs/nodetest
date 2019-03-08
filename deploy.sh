@@ -12,6 +12,7 @@ rm -rf $SERVER/src/view/dist
 mkdir $SERVER/src/view/dist
 
 cd $FRONT
+npm install
 npm run build
 mv -f $FRONT/dist $SERVER/src/view
 
