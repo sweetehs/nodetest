@@ -4,6 +4,7 @@ SERVER="$ROOT/node-test"
 
 cd $SERVER
 npm install
+touch $SERVER/src/gitdatas
 mkdir $SERVER/src/view/project
 
 cd $FRONT

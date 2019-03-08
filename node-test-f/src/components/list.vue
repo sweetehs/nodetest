@@ -136,7 +136,7 @@
     <el-dialog class="dialog-rule" title="规则" :visible.sync="dialogRule">
       <div>提取配置参数文件，在根部录下简历文件名为nodetest.json</div>
       <div>
-        <img width="400" src="@/assets/images/rule.png">
+        <img width="600" src="@/assets/images/rule.png">
       </div>
     </el-dialog>
   </div>
