@@ -6,6 +6,7 @@ SERVER="$ROOT/node-test"
 cd $SERVER
 npm install
 touch $SERVER/src/gitdatas
+mkdir $SERVER/src/git
 mkdir $SERVER/src/view
 mkdir $SERVER/src/view/project
 rm -rf $SERVER/src/view/dist
