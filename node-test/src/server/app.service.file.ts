@@ -8,15 +8,15 @@ const getProPath = data => {
 };
 export class FileService {
   async gitpull(data) {
-    // const root = getRoot(data);st
-    // const gitpath = `${gitroot}/${data.dirname}`;
-    // shelljs.mkdir(gitpath);
-    await new Promise((r, j) => {
-      git(gitroot).clone(data.remote, [], () => {
-        r();
+    if (isExists(getProPath(data))) {
+      await this.checkout('master', data);
+    } else {
+      await new Promise((r, j) => {
+        git(gitroot).clone(data.remote, [], () => {
+          r();
+        });
       });
-    });
-    // await exec(`cd ${root}/${data.dirname} && npm install`);
+    }
   }
   async gitbranch(data) {
     return await new Promise((resolve, reject) => {
@@ -33,8 +33,8 @@ export class FileService {
     });
   }
   async filedelete(data) {
-    const fielpath = `${gitroot}/${data.dirname}_${data.id}`;
-    shelljs.rm('-rf', fielpath);
+    const propath = `${projectroot}/${data.dirname}_${data.id}`;
+    shelljs.rm('-rf', propath);
   }
   async readconfig(data) {
     // const root = getRoot(data);

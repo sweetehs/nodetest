@@ -41,7 +41,7 @@
 </style>
 
 <template>
-  <div class="list-wrapper">
+  <div class="list-wrapper" v-loading="loading">
     <div class="action">
       <el-button type="primary" @click="shaHandleDialog('create')">添加git</el-button>
       <a href="javascript:;" @click="dialogRule = true">查看规则</a>
@@ -98,14 +98,14 @@
           <el-input v-model="currentData.name"></el-input>
         </el-form-item>
         <el-form-item label="git-remote">
-          <el-input :disabled="true" v-model="currentData.remote"></el-input>
+          <el-select :disabled="isUpdate" v-model="currentData.remote">
+            <el-option
+              value="git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git"
+              label="运营管理系统"
+            ></el-option>
+            <el-option value="git@code.byted.org:motor-fe/dealer.git" label="卖车通"></el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="端口" v-if="isUpdate">
-          <el-input v-model="currentData.port"></el-input>
-        </el-form-item>
-        <!-- <el-form-item label="assetsPublicPath" v-if="isUpdate">
-          <el-input v-model="currentData.assetsPublicPath"></el-input>
-        </el-form-item>-->
         <el-form-item label="proxy" v-if="isUpdate">
           <div class="rules" v-for="(item, i) in currentData.proxy" :key="i">
             <el-input class="small" v-model="item.rule"></el-input>
@@ -162,7 +162,7 @@ export default {
         // assetsPublicPath: '',
         port: '',
         proxy: {},
-        remote: 'git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git',
+        remote: '',
       },
     };
   },
@@ -214,6 +214,9 @@ export default {
     },
     handleUpdate() {
       if (!this.isUpdate) {
+        if (!this.currentData.remote) {
+          return;
+        }
         this.loading = true;
         axios({
           url: '/node_self/pull',

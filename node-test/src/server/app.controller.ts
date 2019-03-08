@@ -71,8 +71,6 @@ export class AppController {
   }
   @Post('/delete')
   async deleteItem(@Body() body) {
-    // // 停止pm2
-    await this.pm2Service.delete(body);
     // 删除文件
     await this.fileService.filedelete(body);
     // 删除数据
