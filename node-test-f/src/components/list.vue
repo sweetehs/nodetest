@@ -49,9 +49,8 @@
     <el-table :data="list">
       <el-table-column width="100px" label="id" prop="id"></el-table-column>
       <el-table-column width="100px" label="服务名称" prop="name"></el-table-column>
-      <el-table-column label="urls">
+      <el-table-column width="400px" label="urls">
         <div slot-scope="scope">
-          <p>git-remote：{{scope.row.remote}}</p>
           <p>
             url：
             <a target="_blank" :href="scope.row.url">{{scope.row.url}}</a>
@@ -59,8 +58,9 @@
         </div>
       </el-table-column>
       <!-- <el-table-column width="100px" label="状态" prop="pm2text"></el-table-column> -->
-      <el-table-column width="300px" label="分支">
+      <el-table-column width="300px" label="git">
         <div slot-scope="scope">
+          <p>git-remote：{{scope.row.remote}}</p>
           <p>当前仓库分支：{{scope.row.branch.potcurrent}}</p>
           <p>当前发布分支：{{scope.row.branch.pubcurrent}}</p>
         </div>
