@@ -47,22 +47,17 @@
       <a href="javascript:;" @click="dialogRule = true">查看规则</a>
     </div>
     <el-table :data="list">
-      <el-table-column width="100px" label="id" prop="id"></el-table-column>
-      <el-table-column width="100px" label="服务名称" prop="name"></el-table-column>
-      <el-table-column width="400px" label="urls">
+      <el-table-column width="150px" label="id" prop="id"></el-table-column>
+      <el-table-column width="150px" label="项目名称">
         <div slot-scope="scope">
-          <p>
-            url：
-            <a target="_blank" :href="scope.row.url">{{scope.row.url}}</a>
-          </p>
+          <a target="_blank" :href="scope.row.url">{{scope.row.name}}</a>
         </div>
       </el-table-column>
-      <!-- <el-table-column width="100px" label="状态" prop="pm2text"></el-table-column> -->
-      <el-table-column width="300px" label="git">
+      <el-table-column label="git">
         <div slot-scope="scope">
-          <p>git-remote：{{scope.row.remote}}</p>
-          <p>当前仓库分支：{{scope.row.branch.potcurrent}}</p>
-          <p>当前发布分支：{{scope.row.branch.pubcurrent}}</p>
+          <p>仓库地址：{{scope.row.remote}}</p>
+          <p>当前"仓库"分支：{{scope.row.branch.potcurrent}}</p>
+          <p>当前"发布"分支：{{scope.row.branch.pubcurrent}}</p>
         </div>
       </el-table-column>
       <el-table-column width="300px" label="操作">
