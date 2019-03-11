@@ -107,8 +107,8 @@
               label="运营管理系统"></el-option>
             <el-option value="git@code.byted.org:motor-fe/dealer.git"
               label="卖车通"></el-option>
-            <el-option value="git@ffff/fdsfds.git"
-              label="测试"></el-option>
+            <!-- <el-option value="git@ffff/fdsfds.git"
+              label="测试"></el-option> -->
           </el-select>
         </el-form-item>
         <el-form-item label="proxy"

@@ -35,6 +35,7 @@ export class ProxyController {
           qs: query,
         },
         (err, res, bd) => {
+          console.log(bd)
           if (!err) {
             reslove(JSON.parse(bd ? bd : '{}'));
           } else {
@@ -60,6 +61,7 @@ export class ProxyController {
           form: body,
         },
         (err, res, bd) => {
+          console.log(bd)
           if (!err) {
             reslove(JSON.parse(bd ? bd : '{}'));
           } else {
