@@ -12,7 +12,7 @@ export class FileService {
       await this.checkout('master', data);
     } else {
       await new Promise((r, j) => {
-        git(gitroot).clone(data.remote, [], () => {
+        git(gitroot).fetch(['--prune']).clone(data.remote, [], () => {
           r();
         });
       });
@@ -22,7 +22,7 @@ export class FileService {
     return await new Promise((resolve, reject) => {
       const root = getProPath(data);
       git(`${root}`)
-        // .fetch(['--prune'])
+        .fetch(['--prune'])
         .branch(['-a'], (err, branches) => {
           if (err) {
             reject(err);
