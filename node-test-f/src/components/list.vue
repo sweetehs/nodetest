@@ -20,15 +20,15 @@
   }
 }
 .dialog-form {
+  .small {
+    width: 200px;
+    margin-right: 5px;
+  }
   .rules {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 10px;
-    .small {
-      width: 200px;
-      margin-right: 5px;
-    }
     .icon {
       margin-left: 10px;
       font-size: 24px;
@@ -107,9 +107,18 @@
               label="运营管理系统"></el-option>
             <el-option value="git@code.byted.org:motor-fe/dealer.git"
               label="卖车通"></el-option>
+            <el-option value="ssh://zhaoweinan.vernon@git.byted.org:29418/motor/fe/re_dealer_mobile"
+              label="移动卖车通"></el-option>
             <!-- <el-option value="git@ffff/fdsfds.git"
               label="测试"></el-option> -->
           </el-select>
+        </el-form-item>
+        <el-form-item label="路径替换"
+          v-if="isUpdate">
+          <el-input class="small"
+            v-model="currentData.config.replaceurlbefore" />替换为
+          <el-input class="small"
+            v-model="currentData.config.replaceurlafter" />
         </el-form-item>
         <el-form-item label="proxy"
           v-if="isUpdate">
@@ -196,13 +205,14 @@ export default {
   },
   methods: {
     shaHandleDialog(type, data) {
+      debugger;
       this.dialogHandle = true;
       this.currentType = type;
       if (type === 'update') {
         this.currentData = data;
         // 获取分支
         const { config } = data;
-        this.currentData.port = config.port;
+        // this.currentData.port = config.port;
         // this.currentData.assetsPublicPath = config.assetsPublicPath;
         // 处理proxy
         this.currentData.proxy = [];
@@ -251,7 +261,7 @@ export default {
             this.loading = false;
           });
       } else {
-        const { name, proxy, port, id } = this.currentData;
+        const { name, proxy, port, id, replaceurlbefore, replaceurlafter } = this.currentData;
         const config = Object.assign(this.currentData.config, {
           port,
           proxy: proxy.reduce((r, d) => {

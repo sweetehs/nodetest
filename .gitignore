@@ -14,4 +14,4 @@ git
 *.sln
 dist
 project
-gitdatas*
+/node-test/src/gitdatas

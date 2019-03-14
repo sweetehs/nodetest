@@ -32,7 +32,9 @@ export class AppController {
       createGit,
     );
     data.id = Math.floor(Math.random() * 100000).toString();
-    data.dirname = data.remote.match(/\/(.*?).git/)[1];
+    // 获取文件夹名字
+    const gitsplit = data.remote.split('/');
+    data.dirname = gitsplit[gitsplit.length - 1].replace('.git', '');
     // 拉取
     await this.fileService.gitpull(data);
     // 写入当前仓库分支

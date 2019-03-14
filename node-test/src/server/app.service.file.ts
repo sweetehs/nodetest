@@ -12,9 +12,11 @@ export class FileService {
       await this.checkout('master', data);
     } else {
       await new Promise((r, j) => {
-        git(gitroot).fetch(['--prune']).clone(data.remote, [], () => {
-          r();
-        });
+        git(gitroot)
+          .fetch(['--prune'])
+          .clone(data.remote, [], () => {
+            r();
+          });
       });
     }
   }

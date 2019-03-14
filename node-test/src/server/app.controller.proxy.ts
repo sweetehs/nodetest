@@ -54,10 +54,14 @@ export class ProxyController {
     });
   }
   private async getResquestData(method, body, req) {
-    const { url } = req;
+    let { url } = req;
     const data: any = await this.getId(req);
+    const { replaceurlbefore, replaceurlafter } = data.config;
     if (!data) {
       return;
+    }
+    if (replaceurlbefore && replaceurlafter) {
+      url = url.replace(replaceurlbefore, replaceurlafter).replace('//', '/');
     }
     const { proxy } = data.config;
     let proxyUrl = this.match(url, proxy);
@@ -91,6 +95,7 @@ export class ProxyController {
     if (!requestData) {
       return;
     }
+    debugger;
     const proxydata = await new Promise((reslove, reject) => {
       request(requestData, (err, res, bd) => {
         if (!err) {
