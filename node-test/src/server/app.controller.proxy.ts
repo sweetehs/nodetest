@@ -95,7 +95,6 @@ export class ProxyController {
     if (!requestData) {
       return;
     }
-    debugger;
     const proxydata = await new Promise((reslove, reject) => {
       request(requestData, (err, res, bd) => {
         if (!err) {
@@ -110,13 +109,13 @@ export class ProxyController {
 
   @Post('*')
   async rootPost(@Req() req, @Body() body) {
-    const requestData = await this.getResquestData('get', body, req);
+    const requestData = await this.getResquestData('post', body, req);
     if (!requestData) {
       return;
     }
     // 需要转发的路径
     const proxydata = await new Promise((reslove, reject) => {
-      request({}, (err, res, bd) => {
+      request(requestData, (err, res, bd) => {
         if (!err) {
           reslove(bd);
         } else {
