@@ -1,23 +1,30 @@
 import * as git from 'simple-git';
 import * as shelljs from 'shelljs';
-import { gitroot, dataspath } from './config';
+import { gitroot, projectroot, dataspath } from './config';
 import { read, write, exec, getRoot, isExists } from './util';
 
+const getProPath = data => {
+  return `${gitroot}/${data.dirname}`;
+};
 export class FileService {
   async gitpull(data) {
-    const root = getRoot(data);
-    shelljs.mkdir(root);
-    await new Promise((r, j) => {
-      git(root).clone(data.remote, [], () => {
-        r();
+    if (await isExists(getProPath(data))) {
+      await this.checkout('master', data);
+    } else {
+      await new Promise((r, j) => {
+        git(gitroot)
+          .fetch(['--prune'])
+          .clone(data.remote, [], () => {
+            r();
+          });
       });
-    });
-    await exec(`cd ${root}/${data.dirname} && npm install`);
+    }
   }
   async gitbranch(data) {
     return await new Promise((resolve, reject) => {
-      git(`${gitroot}/${data.dirname}_${data.id}/${data.dirname}`)
-        // .fetch(['--prune'])
+      const root = getProPath(data);
+      git(`${root}`)
+        .fetch(['--prune'])
         .branch(['-a'], (err, branches) => {
           if (err) {
             reject(err);
@@ -28,26 +35,26 @@ export class FileService {
     });
   }
   async filedelete(data) {
-    const fielpath = `${gitroot}/${data.dirname}_${data.id}`;
-    shelljs.rm('-rf', fielpath);
+    const propath = `${projectroot}/${data.dirname}_${data.id}`;
+    shelljs.rm('-rf', propath);
   }
   async readconfig(data) {
-    const root = getRoot(data);
-    const fielpath = `${root}/${data.dirname}/nodetest.json`;
+    // const root = getRoot(data);
+    const root = getProPath(data);
+    const fielpath = `${root}/nodetest.json`;
     return read(fielpath);
   }
   async updateConfig(data) {
-    const path = `${getRoot(data)}/${data.dirname}/nodetest.json`;
-    await write(path, {
-      ...data.config,
-    });
+    const root = getProPath(data);
+    const fielpath = `${root}/nodetest.json`;
+    await write(fielpath, data.config);
   }
   async isaccord(data) {
-    const path = `${getRoot(data)}/${data.dirname}/nodetest.json`;
-    return isExists(path);
+    const root = getProPath(data);
+    return isExists(`${root}/nodetest.json`);
   }
   async checkout(branch, data) {
-    const gitpath = `${getRoot(data)}/${data.dirname}`;
+    const gitpath = getProPath(data);
     // 切换分支之前要保存修改的proxy内容
     return new Promise((r, j) => {
       git(gitpath)
@@ -57,5 +64,19 @@ export class FileService {
           r();
         });
     });
+  }
+  async createProjet(data) {
+    const gitpath = getProPath(data);
+    const propath = `${projectroot}/${data.dirname}_${data.id}`;
+    // 如果有 则需要先删除目标目录
+    await exec(`rm -rf ${propath}`);
+    // 生成目标文件夹
+    await exec(`mkdir ${propath}`);
+    // 修改打包config
+    await this.updateConfig(data);
+    // 打包项目文件
+    await exec(`cd ${gitpath} && npm install && npm run build`);
+    // 移动到项目录
+    await exec(`cd ${gitpath}/dist && cp -rf * ${propath}`);
   }
 }

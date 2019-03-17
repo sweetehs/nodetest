@@ -31,7 +31,7 @@ export const getRoot = data => {
 export const exec = command => {
   return new Promise((resolve, reject) =>
     shelljs.exec(command, {}, (code, value, error) => {
-      if (error && error.indexOf('npm ERR!') !== -1) {
+      if (error.indexOf('npm ERR!') !== -1) {
         return reject(error);
       }
       resolve(value);

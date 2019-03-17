@@ -22,15 +22,15 @@
   }
 }
 .dialog-form {
+  .small {
+    width: 200px;
+    margin-right: 5px;
+  }
   .rules {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 10px;
-    .small {
-      width: 200px;
-      margin-right: 5px;
-    }
     .icon {
       margin-left: 10px;
       font-size: 24px;
@@ -43,109 +43,131 @@
 </style>
 
 <template>
-  <div class="list-wrapper" v-loading="loading">
+  <div class="list-wrapper"
+    v-loading="loading">
     <div class="action">
-      <el-button type="primary" @click="shaHandleDialog('create')">添加git</el-button>
-      <a href="javascript:;" @click="dialogRule = true">查看规则</a>
+      <el-button type="primary"
+        @click="shaHandleDialog('create')">添加git</el-button>
+      <a href="javascript:;"
+        @click="dialogRule = true">查看规则</a>
     </div>
     <el-table :data="list">
-      <el-table-column width="100px" label="id" prop="id"></el-table-column>
-      <el-table-column width="100px" label="服务名称" prop="name"></el-table-column>
-      <el-table-column label="urls">
+      <el-table-column width="150px"
+        label="id"
+        prop="id"></el-table-column>
+      <el-table-column width="150px"
+        label="项目名称">
         <div slot-scope="scope">
-          <p>git-remote：{{scope.row.remote}}</p>
-          <p>
-            url：
-            <a target="_blank" :href="scope.row.url">{{scope.row.url}}</a>
-          </p>
+          <a target="_blank"
+            :href="scope.row.url">{{scope.row.name}}</a>
         </div>
       </el-table-column>
-      <el-table-column width="100px" label="状态" prop="pm2text"></el-table-column>
-      <el-table-column width="400px" label="操作">
+      <el-table-column label="git">
         <div slot-scope="scope">
-          <el-switch
-            v-if="scope.row.flag"
-            class="fn-mr10"
-            active-color="#13ce66"
-            inactive-color="#F56C6C"
-            :value="!scope.row.pm2status"
-            @change="pm2Handle(scope.row)"
-          ></el-switch>
-          <el-button
-            :disabled="scope.row.pm2status"
-            size="mini"
-            type="primary"
-            @click="showBranchDialog(scope.row)"
-          >切换分支</el-button>
-          <el-button
-            v-if="scope.row.flag"
-            :disabled="scope.row.pm2status"
-            type="primary"
-            size="mini"
-            @click="shaHandleDialog('update', scope.row)"
-          >修改</el-button>
-          <el-button
-            v-if="scope.row.flag"
-            type="danger"
-            size="mini"
-            :disabled="scope.row.pm2status"
-            @click="deleteItem(scope.row)"
-          >删除</el-button>
-          <span v-if="!scope.row.flag" class="fn-ml10">该分支不符合项目请点击右上角查看规则</span>
+          <p>仓库地址：{{scope.row.remote}}</p>
+          <p>当前"仓库"分支：{{scope.row.branch.potcurrent}}</p>
+          <p>当前"发布"分支：{{scope.row.branch.pubcurrent}}</p>
+        </div>
+      </el-table-column>
+      <el-table-column width="300px"
+        label="操作">
+        <div slot-scope="scope">
+          <div v-loading="scope.row.loading">
+            <el-button v-if="scope.row.flag"
+              size="mini"
+              type="primary"
+              @click="publish(scope.row)">发布</el-button>
+            <el-button size="mini"
+              type="primary"
+              @click="showBranchDialog(scope.row)">切换分支</el-button>
+            <el-button v-if="scope.row.flag"
+              type="primary"
+              size="mini"
+              @click="shaHandleDialog('update', scope.row)">修改</el-button>
+            <el-button v-if="scope.row.flag"
+              type="danger"
+              size="mini"
+              @click="deleteItem(scope.row)">删除</el-button>
+            <span v-if="!scope.row.flag"
+              class="fn-ml10">该分支不符合项目请点击右上角查看规则</span>
+          </div>
         </div>
       </el-table-column>
     </el-table>
-    <el-dialog v-loading="loading" class="dialog-form" width="800px" :visible.sync="dialogHandle">
+    <el-dialog v-loading="loading"
+      class="dialog-form"
+      width="800px"
+      :visible.sync="dialogHandle">
       <el-form label-width="150px">
         <el-form-item label="项目名称">
           <el-input v-model="currentData.name"></el-input>
         </el-form-item>
         <el-form-item label="git-remote">
-          <el-select :disabled="isUpdate" v-model="currentData.remote">
-            <el-option
-              value="git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git"
-              label="运营管理系统"
-            ></el-option>
-            <el-option value="git@code.byted.org:motor-fe/dealer.git" label="卖车通"></el-option>
+          <el-select :disabled="isUpdate"
+            v-model="currentData.remote">
+            <el-option value="git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git"
+              label="运营管理系统"></el-option>
+            <el-option value="git@code.byted.org:motor-fe/dealer.git"
+              label="卖车通"></el-option>
+            <el-option value="ssh://zhaoweinan.vernon@git.byted.org:29418/motor/fe/re_dealer_mobile"
+              label="移动卖车通"></el-option>
+            <!-- <el-option value="git@ffff/fdsfds.git"
+              label="测试"></el-option> -->
           </el-select>
         </el-form-item>
-        <el-form-item label="端口" v-if="isUpdate">
-          <el-input v-model="currentData.port"></el-input>
+        <el-form-item label="路径替换"
+          v-if="isUpdate">
+          <el-input class="small"
+            v-model="currentData.config.replaceurlbefore" />替换为
+          <el-input class="small"
+            v-model="currentData.config.replaceurlafter" />
         </el-form-item>
-        <!-- <el-form-item label="assetsPublicPath" v-if="isUpdate">
-          <el-input v-model="currentData.assetsPublicPath"></el-input>
-        </el-form-item>-->
-        <el-form-item label="proxy" v-if="isUpdate">
-          <div class="rules" v-for="(item, i) in currentData.proxy" :key="i">
-            <el-input class="small" v-model="item.rule"></el-input>
-            <el-input class="middle" v-model="item.url"></el-input>
-            <span v-if="i === 0" class="icon el-icon-circle-plus" @click="addRule()"></span>
-            <span
-              class="icon el-icon-remove"
+        <el-form-item label="proxy"
+          v-if="isUpdate">
+          <div class="rules"
+            v-for="(item, i) in currentData.proxy"
+            :key="i">
+            <el-input class="small"
+              v-model="item.rule"></el-input>
+            <el-input class="middle"
+              v-model="item.url"></el-input>
+            <span v-if="i === 0"
+              class="icon el-icon-circle-plus"
+              @click="addRule()"></span>
+            <span class="icon el-icon-remove"
               @click="deleteRule(i)"
-              v-if="currentData.proxy.length > 1"
-            ></span>
+              v-if="currentData.proxy.length > 1"></span>
           </div>
         </el-form-item>
         <div class="fn-center">
-          <el-button type="primary" @click="handleUpdate">提交</el-button>
+          <el-button type="primary"
+            @click="handleUpdate">提交</el-button>
         </div>
       </el-form>
     </el-dialog>
-    <el-dialog title="切换分支" :visible.sync="dialogBranch">
+    <el-dialog title="切换分支"
+      :visible.sync="dialogBranch">
       <el-radio-group v-model="currentBranches.current">
-        <div class="fn-mb10" v-for="item in currentBranches.all" :key="item">
-          <el-radio :label="item" :key="item">{{item}}</el-radio>
+        <div class="fn-mb10"
+          v-for="item in currentBranches.all"
+          :key="item">
+          <el-radio :label="item"
+            :key="item">{{item}}</el-radio>
         </div>
       </el-radio-group>
       <div class="action fn-center">
-        <el-button type="primary" size="small" @click="sureCheckBranch">切换</el-button>
+        <el-button type="primary"
+          size="small"
+          @click="sureCheckBranch">切换并发布</el-button>
       </div>
     </el-dialog>
-    <el-dialog class="dialog-rule" title="规则" :visible.sync="dialogRule">
+    <el-dialog class="dialog-rule"
+      title="规则"
+      :visible.sync="dialogRule">
       <div>提取配置参数文件，在根部录下简历文件名为nodetest.json</div>
       <div>
-        <img width="400" src="@/assets/images/rule.png">
+        <img width="600"
+          src="@/assets/images/rule.png">
       </div>
     </el-dialog>
   </div>
@@ -168,7 +190,7 @@ export default {
       currentData: {
         name: '测试',
         currentBranch: '',
-        assetsPublicPath: '',
+        // assetsPublicPath: '',
         port: '',
         proxy: {},
         remote: '',
@@ -185,42 +207,36 @@ export default {
   },
   methods: {
     shaHandleDialog(type, data) {
+      debugger;
       this.dialogHandle = true;
       this.currentType = type;
       if (type === 'update') {
         this.currentData = data;
         // 获取分支
-        axios({
-          url: '/devconfig',
-          params: {
-            id: data.id,
-          },
-        }).then(ajaxData => {
-          const { config } = ajaxData.data.data;
-          this.currentData.port = config.port;
-          this.currentData.assetsPublicPath = config.assetsPublicPath;
-          // 处理proxy
-          this.currentData.proxy = [];
-          for (var i in config.proxy) {
-            const _data = config.proxy[i];
-            if (_data) {
-              this.currentData.proxy.push({
-                rule: i,
-                url: _data.target,
-              });
-            }
+        const { config } = data;
+        // this.currentData.port = config.port;
+        // this.currentData.assetsPublicPath = config.assetsPublicPath;
+        // 处理proxy
+        this.currentData.proxy = [];
+        for (var i in config.proxy) {
+          const _data = config.proxy[i];
+          if (_data) {
+            this.currentData.proxy.push({
+              rule: i,
+              url: _data.target,
+            });
           }
-        });
+        }
       }
     },
     ajaxGetList() {
       axios({
-        url: '/alllist',
+        url: '/node_self/alllist',
       }).then(ajaxData => {
         this.list = ajaxData.data.data.list.map(data => {
           data.pm2text = data.pm2status ? '正在运行' : '已停止';
           if (data.flag) {
-            data.url = `http://10.8.121.94:${data.config.port}${data.config.devAssetsPublicPath}`;
+            data.url = `${data.config.buildAssetsPublicPath}index.html`;
           } else {
             data.url = '项目不符合要求';
           }
@@ -233,35 +249,37 @@ export default {
         if (!this.currentData.remote) {
           return;
         }
-        // 校验
+        this.loading = true;
         axios({
-          url: '/checklength',
-        }).then(ajaxData => {
-          if (ajaxData.data.type === 'success') {
-            this.loading = true;
-            axios({
-              url: '/pull',
-              method: 'post',
-              data: this.currentData,
-            })
-              .then(() => {
-                this.dialogHandle = false;
-                this.ajaxGetList();
-              })
-              .finally(() => {
-                this.loading = false;
-              });
-          } else {
-            this.$message.error(ajaxData.data.msg);
-          }
-        });
+          url: '/node_self/pull',
+          method: 'post',
+          data: this.currentData,
+        })
+          .then(() => {
+            this.dialogHandle = false;
+            this.ajaxGetList();
+          })
+          .finally(() => {
+            this.loading = false;
+          });
       } else {
-        // check port
+        const { name, proxy, port, id, replaceurlbefore, replaceurlafter } = this.currentData;
+        const config = Object.assign(this.currentData.config, {
+          port,
+          proxy: proxy.reduce((r, d) => {
+            r[d.rule] = {};
+            r[d.rule].target = d.url;
+            r[d.rule].changeOrigin = true;
+            return r;
+          }, {}),
+        });
         axios({
-          url: '/checkport',
-          params: {
-            id: this.currentData.id,
-            port: this.currentData.port,
+          url: '/node_self/update',
+          method: 'post',
+          data: {
+            id,
+            name,
+            config,
           },
         }).then(ajaxData => {
           if (ajaxData.data.type === 'success') {
@@ -298,7 +316,7 @@ export default {
     deleteItem(data) {
       this.loading = true;
       axios({
-        url: '/delete',
+        url: '/node_self/delete',
         method: 'post',
         data: {
           id: data.id,
@@ -321,23 +339,22 @@ export default {
     deleteRule(index) {
       this.currentData.proxy.splice(index, 1);
     },
-    pm2Handle(data) {
-      let url = '';
-      if (data.pm2status) {
-        url = '/pm2stop';
-      } else {
-        url = '/pm2start';
-      }
+    publish(data) {
+      this.loading = true;
       axios({
-        url: url,
+        url: '/node_self/publish',
         method: 'post',
         data: {
           id: data.id,
         },
-      }).then(() => {
-        this.$message.success('操作成功');
-        this.ajaxGetList();
-      });
+      })
+        .then(() => {
+          this.$message.success('操作成功');
+          this.ajaxGetList();
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     showBranchDialog(data) {
       this.currentData = data;
@@ -347,7 +364,7 @@ export default {
       };
       this.dialogBranch = true;
       axios({
-        url: '/branch',
+        url: '/node_self/branch',
         params: {
           id: data.id,
         },
@@ -359,7 +376,7 @@ export default {
     },
     sureCheckBranch() {
       axios({
-        url: '/checkoutbranch',
+        url: '/node_self/checkoutpub',
         method: 'post',
         data: {
           id: this.currentData.id,

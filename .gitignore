@@ -13,4 +13,5 @@ git
 *.njsproj
 *.sln
 dist
-gitdatas
+project
+/node-test/src/gitdatas
