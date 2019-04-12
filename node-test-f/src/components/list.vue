@@ -103,17 +103,7 @@
           <el-input v-model="currentData.name"></el-input>
         </el-form-item>
         <el-form-item label="git-remote">
-          <el-select :disabled="isUpdate"
-            v-model="currentData.remote">
-            <el-option value="git@code.byted.org:zhaoweinan.vernon/bussiness_operate.git"
-              label="运营管理系统"></el-option>
-            <el-option value="git@code.byted.org:motor-fe/dealer.git"
-              label="卖车通"></el-option>
-            <el-option value="ssh://zhaoweinan.vernon@git.byted.org:29418/motor/fe/re_dealer_mobile"
-              label="移动卖车通"></el-option>
-            <!-- <el-option value="git@ffff/fdsfds.git"
-              label="测试"></el-option> -->
-          </el-select>
+
         </el-form-item>
         <el-form-item label="路径替换"
           v-if="isUpdate">
